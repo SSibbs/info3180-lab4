@@ -8,6 +8,8 @@ from app.forms import LoginForm
 
 from werkzeug.security import check_password_hash
 
+from app.forms import UploadForm
+
 
 ###
 # Routing for your application.
@@ -26,17 +28,29 @@ def about():
 
 
 @app.route('/upload', methods=['POST', 'GET'])
+@login_required
 def upload():
     # Instantiate your form class
+    form = UploadForm()
 
     # Validate file upload on submit
     if form.validate_on_submit():
         # Get file data and save to your uploads folder
+        uploaded_file = form.file.data
+
+        # Make filename safe
+        filename = secure_filename(uploaded_file.filename)
+
+        # Save to upload folder (set in config)
+        uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         flash('File Saved', 'success')
-        return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
+        return redirect(url_for('upload'))  # redirect to same page or another page
 
-    return render_template('upload.html')
+    return render_template('upload.html', form=form)
+
+        #return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
+
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -68,25 +82,13 @@ def login():
         # Remember to flash a message to the user
 
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('upload'))  # The user should be redirected to the upload form instead
+            return redirect(url_for('upload'))
 
         else:
             flash('Invalid username or password', 'danger')
 
     return render_template("login.html", form=form)
 
-        # Using your model, query database for a user based on the username
-        # and password submitted. Remember you need to compare the password hash.
-        # You will need to import the appropriate function to do so.
-        # Then store the result of that query to a `user` variable so it can be
-        # passed to the login_user() method below.
-
-        # Gets user id, load into session
-        # login_user(user)
-
-        # Remember to flash a message to the user
-        #return redirect(url_for("home"))  # The user should be redirected to the upload form instead
-    #return render_template("login.html", form=form)
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
