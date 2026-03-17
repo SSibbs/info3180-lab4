@@ -10,10 +10,37 @@ from werkzeug.security import check_password_hash
 
 from app.forms import UploadForm
 
+from flask import send_from_directory
+#
+from flask import current_app
+
+def get_uploaded_images():
+    folder = app.config['UPLOAD_FOLDER']
+    if not os.path.exists(folder):
+        return []
+    # Only return image files
+    return [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+
+
+@app.route('/uploads/<filename>')
+@login_required
+def get_image(filename):
+    # Serve files from the uploads folder inside the project root
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/files')
+@login_required
+def files():
+    images = get_uploaded_images()
+    return render_template('files.html', images=images)
+
 
 ###
 # Routing for your application.
 ###
+
+
+
 
 @app.route('/')
 def home():
