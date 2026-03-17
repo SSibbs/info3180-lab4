@@ -158,3 +158,12 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
+
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()  # Logs the user out
+    flash('You have been logged out successfully.', 'success')
+    return redirect(url_for('home'))
